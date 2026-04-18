@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    /* Subtle paper-like background with very faint warm noise */
+    background-color: theme('colors.paper.100');
+    color: theme('colors.ink.900');
+    font-family: theme('fontFamily.body');
+    font-size: 17px;
+    line-height: 1.6;
+    font-feature-settings: 'liga' 1, 'kern' 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-image:
+      /* Very soft radial warmth top-left */
+      radial-gradient(
+        ellipse 900px 600px at 10% -10%,
+        rgba(168, 182, 140, 0.10) 0%,
+        transparent 60%
+      ),
+      /* Subtle grain via SVG data URI for paper feel */
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.14 0 0 0 0 0.12 0 0 0 0 0.09 0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: theme('fontFamily.display');
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: theme('colors.ink.900');
+  }
+
+  h1 { font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.1; letter-spacing: -0.02em; }
+  h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); line-height: 1.2; }
+  h3 { font-size: 1.35rem; line-height: 1.3; }
+
+  button, input, select, textarea {
+    font-family: theme('fontFamily.ui');
+  }
+
+  :focus-visible {
+    outline: 2px solid theme('colors.sage.500');
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: theme('colors.sage.200');
+    color: theme('colors.ink.900');
+  }
+}
+
+@layer components {
+  /* Display numerals in deep italic serif — used for hero moments */
+  .display-italic {
+    font-family: theme('fontFamily.display');
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* Small caps label used for section meta */
+  .meta-label {
+    font-family: theme('fontFamily.ui');
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: theme('colors.ink.500');
+  }
+
+  /* Paper card — warm surface with subtle elevation */
+  .paper-card {
+    background: theme('colors.paper.50');
+    border: 1px solid theme('colors.paper.300');
+    border-radius: theme('borderRadius.card');
+    box-shadow: theme('boxShadow.card');
+    transition: transform 320ms theme('transitionTimingFunction.paper'),
+                box-shadow 320ms theme('transitionTimingFunction.paper'),
+                border-color 200ms ease;
+  }
+
+  .paper-card-raised {
+    box-shadow: theme('boxShadow.card-raised');
+  }
+
+  /* Decorative rule — warm sage divider */
+  .rule {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      theme('colors.ink.400') 20%,
+      theme('colors.ink.400') 80%,
+      transparent 100%
+    );
+    opacity: 0.35;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Animation utility for staggered entry */
+  .fade-up {
+    animation: fadeUp 700ms theme('transitionTimingFunction.paper') both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}

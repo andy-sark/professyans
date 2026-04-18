@@ -1,0 +1,27 @@
+/**
+ * Formula-7 hint signatures and SCHZH conflicts.
+ *
+ * Source of truth: `shared-data/formula7/hints.json`.
+ */
+
+import hintsJson from '@shared-data/formula7/hints.json';
+
+export interface HintSignature {
+  id: string;
+  keys: string[];
+  label: string;
+  examples: string[];
+}
+
+export interface SchzhConflict {
+  cards: string[];
+  description: string;
+}
+
+const data = hintsJson as {
+  hints: HintSignature[];
+  schzh_conflicts: SchzhConflict[];
+};
+
+export const F7_HINTS: HintSignature[] = data.hints;
+export const F7_SCHZH_CONFLICTS: SchzhConflict[] = data.schzh_conflicts;

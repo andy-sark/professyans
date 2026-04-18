@@ -1,0 +1,56 @@
+# docker compose up
+# One command brings up: Postgres, FastAPI backend, Vite-built frontend behind nginx.
+# For pure-local dev without Docker, see README (npm run dev + uvicorn app.main:app).
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: professyans
+      POSTGRES_PASSWORD: professyans
+      POSTGRES_DB: professyans
+    volumes:
+      - professyans-db:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # 5433 to avoid collision with local Postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U professyans -d professyans"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://professyans:professyans@db:5432/professyans
+      CORS_ALLOW_ORIGINS: '["http://localhost:8080","http://127.0.0.1:8080"]'
+      LOG_LEVEL: info
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  professyans-db:

@@ -1,0 +1,68 @@
+# .cursorindexingignore
+# Файлы, которые Cursor НЕ индексирует (не видит в семантическом поиске),
+# но может открыть, если явно передать путь или @-reference.
+# Синтаксис совпадает с .gitignore.
+#
+# Используем для мусора, который не нужен в поиске, но технически безопасен:
+# генерируемые артефакты, lockfiles, кеши.
+#
+# НЕ дублирует .gitignore: те файлы часто уже не в репозитории, но бывают локально
+# (например, после npm install). Здесь фильтр ПЕРЕД AI-индексацией.
+
+# ─── Node / Vite ─────────────────────────────────────────────
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.vite/
+*.tsbuildinfo
+# Lockfile: большой, меняется автоматически, редко полезен для AI
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ─── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+build/
+dist-node/
+
+# ─── Логи, временные файлы ───────────────────────────────────
+*.log
+logs/
+tmp/
+.DS_Store
+
+# ─── Docker ──────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ─── Будущие desktop-артефакты (PyInstaller) ─────────────────
+build-desktop/
+dist-desktop/
+*.dmg
+*.exe
+*.spec.bak
+
+# ─── OS / editor ─────────────────────────────────────────────
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.sublime-*
+
+# ─── Медиа-артефакты (пока нет, задел на будущее) ────────────
+# screenshots/
+# *.mp4

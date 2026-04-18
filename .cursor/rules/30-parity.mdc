@@ -1,0 +1,106 @@
+---
+description: Правило parity TS↔Python для бизнес-логики. Применяется при правках validation, hint matching, process insights.
+globs:
+  - frontend/src/lib/f7/**
+  - frontend/src/lib/f5/**
+  - frontend/src/lib/kchg/**
+  - frontend/src/lib/perekrestok/**
+  - frontend/src/lib/tracker.ts
+  - core/src/professyans_core/methods/**/*.py
+  - backend/app/api/sessions.py
+alwaysApply: false
+---
+
+# Правило parity TS ↔ Python
+
+Этот файл открыт — значит, ты трогаешь бизнес-логику. Парность обязательна.
+
+## Что обязательно дублировать
+
+| TS (frontend) | Python (core) |
+|---|---|
+| `lib/f7/validation.ts::validateFormula` | `methods/formula7.py::validate_formula` |
+| `lib/f7/hints.ts::matchHints` | `methods/formula7.py::match_hints` |
+| `lib/f7/hints.ts::detectSchzhConflicts` | `methods/formula7.py::detect_schzh_conflicts` |
+| `lib/tracker.ts::computeInsights` | `methods/formula7.py::compute_insights` |
+
+При добавлении нового метода (F-5, КЧГ, Перекрёсток) — зеркальная структура.
+
+## Что НЕ требует parity
+
+- UI-логика: раскраска, анимации, фокус, drag-n-drop.
+- Storage: localStorage/IDB во фронте vs SQLAlchemy на бэке — разные системы.
+- Роутинг, CORS, авторизация — только на бэке.
+- React-компоненты, Tailwind-классы.
+
+## Как проверить, что parity держится
+
+Тест-сигнал: `backend/tests/test_api.py::test_get_result_computes_hints_and_conflicts`. PUT-ит сессию, проверяет `h4` (IT). Расходится — правка односторонняя.
+
+```bash
+cd core && pytest        # 24 теста, включая parity-регрессии
+cd backend && pytest     # 8 integration-тестов
+```
+
+## Процесс двухсторонней правки
+
+Правильная последовательность:
+
+1. **Реализуй в `core/`** + тест в `core/tests/`.
+2. **Реализуй в `frontend/src/lib/`** + ручная проверка в dev.
+3. **Обнови endpoint** в `backend/app/api/` если нужно + integration-тест.
+4. **Обнови `docs/02_DATA_CONTRACT.md`** при затронутых данных.
+
+Всё в одном PR. Полу-правки не мержить.
+
+## Типичные ошибки
+
+### ❌ Изменил алгоритм только в TS
+
+Симптом: фронт показывает `h4`, бэк возвращает `h3`. Тест `test_get_result_computes_hints_and_conflicts` падает.
+
+### ❌ Добавил новый `kind` триггера провокации только во фронте
+
+Симптом: на фронте срабатывает, при server-side расчёте insights отсутствует запись. Если триггер чисто UI-level (показ в момент — OK), если же влияет на `session.trace` (пишет событие) — parity нужна.
+
+### ❌ Разные пороги в одних и тех же константах
+
+Например: `DECISION_QUICK_MS = 2000` в TS, `_DECISION_QUICK_MS = 1500` в Python. Frontend и backend не сходятся в классификации «быстрых» решений.
+
+**Лучше:** вынести константы в `shared-data/constants.json` когда будет нужна их синхронизация на уровне данных. Пока их мало — держим в двух местах, с тестом-регрессией.
+
+## Алгоритмы, которые обязаны совпадать на 100%
+
+Эти имеют тесты прямого сравнения:
+
+### matchHints / match_hints
+
+```
+keep if coverage >= 1.0 OR (score >= 2 AND coverage >= 0.66)
+sort by score DESC, coverage DESC
+limit 6
+```
+
+### detectSchzhConflicts / detect_schzh_conflicts
+
+```
+trigger if ALL cards from conflict.cards are in selected ("like") set
+```
+
+### validateFormula / validate_formula (F-7)
+
+```
+size == 7
+AND every mainGroup has ≥1 card in formula
+AND every mainGroup has ≥1 "like" in cardStates
+```
+
+## Если правка требует нарушения parity
+
+Редкий случай (например, performance-оптимизация одной стороны). Фиксируй:
+
+1. В коде — комментарий `// PARITY: intentional divergence, see <reason>`.
+2. В тесте — явный skip с объяснением.
+3. В PR-описании — обоснование.
+
+Но default — держим parity, это дешевле долгосрочно.
