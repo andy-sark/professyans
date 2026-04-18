@@ -8,6 +8,7 @@
 
 ## Архитектура монорепо
 
+````
 ```
 professyans/
 ├── frontend/             React 18 + TypeScript + Vite + Tailwind
@@ -18,9 +19,20 @@ professyans/
 ├── shared-data/          Canonical JSON — карточки, провокации, подсказки.
 │                         Читается фронтом (через Vite alias @shared-data)
 │                         и Python-ядром (через PROFESSYANS_DATA_DIR).
+├── docs/                 Опорные документы проекта (INDEX, ARCHITECTURE,
+│                         DATA_CONTRACT, CONVENTIONS, CURSOR_PLAYBOOK,
+│                         ROADMAP_TASKS, SPEC_MAP, GIT_WORKFLOW).
+├── .cursor/rules/        Cursor project rules (*.mdc с YAML-frontmatter).
+├── AGENTS.md             Cross-tool инструкции для AI-агентов.
+├── .cursorignore         Файлы, скрытые от AI-контекста (секреты, БД).
+├── .cursorindexingignore Файлы вне семантического поиска (кеши, dist).
 ├── docker-compose.yml    Postgres + backend + frontend одной командой.
-└── README.md             (этот файл)
+├── README.md             (этот файл)
+├── CHANGELOG.md          История изменений.
+├── professyans_spec_v2.md   Спецификация карточных методик.
+└── perekrestok_spec_v2.md   Спецификация опросника.
 ```
+````
 
 ### Единый источник данных
 

@@ -20,12 +20,20 @@ dist/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+# Пакетные менеджеры — кеши
+.npm/
+.yarn/
+.pnpm-store/
+.eslintcache
 
 # ─── Python ──────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
 *.egg-info/
+.eggs/
+wheels/
+.python-version
 .venv/
 venv/
 env/
@@ -39,6 +47,9 @@ coverage.xml
 .tox/
 build/
 dist-node/
+# uv (если перейдём на uv вместо pip/poetry)
+.uv/
+uv.lock
 
 # ─── Логи, временные файлы ───────────────────────────────────
 *.log
@@ -66,3 +77,7 @@ Thumbs.db
 # ─── Медиа-артефакты (пока нет, задел на будущее) ────────────
 # screenshots/
 # *.mp4
+
+# ─── VCS / merge артефакты ───────────────────────────────────
+*.orig
+*.rej

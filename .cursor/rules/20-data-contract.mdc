@@ -97,7 +97,7 @@ alwaysApply: false
 - `id` формат `h<N>`.
 - `keys` — ВСЕ должны быть `like` для полного совпадения.
 - `examples` — примеры, **не рекомендации**.
-- Алгоритм: keep если `coverage >= 1.0` OR (`score >= 2` AND `coverage >= 0.66`). См. `lib/f7/hints.ts::matchHints` / `core/methods/formula7.py::match_hints`.
+- Алгоритм: keep если `coverage >= 1.0` OR (`score >= 2` AND `coverage >= 0.66`). См. `frontend/src/lib/f7/hints.ts::matchHints` / `core/src/professyans_core/methods/formula7.py::match_hints`.
 
 ## SCHZH-конфликты
 
@@ -115,7 +115,7 @@ alwaysApply: false
 
 ### Новая провокация
 1. Добавить в `shared-data/formula7/provocations.json` с уникальным `id`.
-2. Если новый `kind` триггера — добавить обработчик в `frontend/src/lib/tracker.ts` и симметрично в `core/methods/formula7.py`.
+2. Если новый `kind` триггера — добавить обработчик в `frontend/src/lib/tracker.ts` и симметрично в `core/src/professyans_core/methods/formula7.py`.
 
 ### Новая hint-сигнатура
 1. Добавить в `hints.json::hints[]` с `id: "h<N>"`.

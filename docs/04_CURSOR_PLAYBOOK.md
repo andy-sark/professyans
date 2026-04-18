@@ -21,7 +21,7 @@ Cursor НЕ видит:
 - Файлы из `.cursorignore` (секреты, локальные БД) — вообще никогда.
 - Файлы из `.cursorindexingignore` (lockfiles, кеши, dist/) — только если явно не открыты.
 - Git-историю, issues, внешние ссылки.
-- Спеки в `/mnt/project/` — их нужно класть в репозиторий (`docs/specs/` или аналогично) для доступа.
+- Что-либо вне checkout репозитория. Спеки `professyans_spec_v2.md` и `perekrestok_spec_v2.md` лежат в корне репо — доступ через `@professyans_spec_v2.md`.
 
 Вывод: **промпт должен включать всё необходимое по `@`-reference**. Не рассчитывай, что Cursor «помнит» предыдущий разговор или «догадается» о конвенциях.
 
@@ -32,7 +32,7 @@ Cursor НЕ видит:
 | `.cursor/rules/00-global.mdc` | always | **всегда** — красные линии, стек, parity, required reading |
 | `.cursor/rules/10-architecture.mdc` | agent-requested | когда агент решит, что обсуждается архитектура |
 | `.cursor/rules/20-data-contract.mdc` | auto-attached | при правке `shared-data/**`, `**/data/**`, `methods/**` |
-| `.cursor/rules/30-parity.mdc` | auto-attached | при правке `lib/f7/**`, `core/methods/**` |
+| `.cursor/rules/30-parity.mdc` | auto-attached | при правке `frontend/src/lib/f7/**`, `core/src/professyans_core/methods/**` |
 | `AGENTS.md` | always (по стандарту) | **всегда** — проектный README для агентов |
 
 Новое правило добавляется как `.cursor/rules/<prefix>-<name>.mdc` — префикс по возрастанию (40-typescript.mdc, 50-python.mdc), чтобы было понятно читать.

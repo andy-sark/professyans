@@ -11,7 +11,7 @@ alwaysApply: false
 
 `core/` — pure-Python library **без IO и HTTP**. Никаких `fastapi`, `sqlalchemy`, `uvicorn`. Только бизнес-логика + модели.
 
-**Причина:** desktop-билд (итерация 7 roadmap, PyInstaller → dmg/exe) будет включать то же ядро без FastAPI. Разница — SQLite вместо Postgres и PyWebView вместо браузера. Если тащить FastAPI в core — десктоп-бинарь раздувается, и теряется parity с web.
+**Причина:** desktop-билд (итерация 8 roadmap, PyInstaller → dmg/exe) будет включать то же ядро без FastAPI. Разница — SQLite вместо Postgres и PyWebView вместо браузера. Если тащить FastAPI в core — десктоп-бинарь раздувается, и теряется parity с web.
 
 **Проверка:** `grep -r "import fastapi\|from fastapi\|import sqlalchemy\|from sqlalchemy" core/src/` должен вернуть пусто.
 
@@ -22,7 +22,7 @@ alwaysApply: false
 - бэк хочет server-side доступ + cache-friendly endpoints;
 - psycholog-редактор хочет править формулировки без git-push и рекомпиляции.
 
-Единственный формат, удовлетворяющий всем — JSON в отдельной папке. Вывод: JSON — source of truth; TS-wrapper'ы (`frontend/src/data/<method>/*.ts`) и Python-loader (`core/paths.py`) — derivative.
+Единственный формат, удовлетворяющий всем — JSON в отдельной папке. Вывод: JSON — source of truth; TS-wrapper'ы (`frontend/src/data/<method>/*.ts`) и Python-loader (`core/src/professyans_core/paths.py`) — derivative.
 
 **Никогда не правь данные в TS/Python**, только в JSON. Новое поле → сначала JSON → затем TS-wrapper → затем Python-модель → затем тесты.
 

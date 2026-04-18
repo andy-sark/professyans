@@ -10,10 +10,10 @@
 
 ### Что такое «логика»
 
-- Алгоритмы валидации формулы: `lib/f7/validation.ts` ↔ `core/methods/formula7.py::validate_formula`.
-- Матчинг подсказок: `lib/f7/hints.ts::matchHints` ↔ `core/methods/formula7.py::match_hints`.
+- Алгоритмы валидации формулы: `frontend/src/lib/f7/validation.ts` ↔ `core/src/professyans_core/methods/formula7.py::validate_formula`.
+- Матчинг подсказок: `frontend/src/lib/f7/hints.ts::matchHints` ↔ `core/src/professyans_core/methods/formula7.py::match_hints`.
 - Детекция конфликтов: `detectSchzhConflicts` ↔ `detect_schzh_conflicts`.
-- Вычисление инсайтов процесса: `lib/tracker.ts::computeInsights` ↔ `core/methods/formula7.py::compute_insights`.
+- Вычисление инсайтов процесса: `frontend/src/lib/tracker.ts::computeInsights` ↔ `core/src/professyans_core/methods/formula7.py::compute_insights`.
 
 ### Что НЕ требует parity
 

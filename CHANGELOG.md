@@ -22,6 +22,17 @@
 - **Миграция с legacy `.cursorrules` на новую структуру `.cursor/rules/*.mdc` + `AGENTS.md`.** Старый формат официально помечен как deprecated; новая схема даёт четыре режима активации (always / auto-attached по глобам / agent-requested / manual), cross-tool совместимость, лучшее управление контекстом.
 - Обновлены `docs/00_INDEX.md` и `docs/04_CURSOR_PLAYBOOK.md` под новую структуру.
 
+### Fixed
+- **Consistency-audit через Cursor после initial git setup выявил рассинхрон путей:**
+  - `README.md` — дерево репо дополнено до полного: добавлены `docs/`, `.cursor/`, корневые спеки, `AGENTS.md`, `CHANGELOG.md`.
+  - `docs/06_SPEC_MAP.md` — все пути приведены к полной репо-относительной форме (было: `core/methods/formula7.py`, `HomeScreen.tsx` без каталога, `05_ROADMAP_TASKS.md` без `docs/`; ссылка `@/mnt/project/...` заменена на `@professyans_spec_v2.md` из корня репо).
+  - `AGENTS.md` и `.cursor/rules/10-architecture.mdc` — номер итерации desktop выровнен с `README.md` / `docs/05_ROADMAP_TASKS.md` (итерация **8**; было разночтение 7/8).
+  - `.cursor/rules/10-architecture.mdc` — `core/paths.py` исправлено на `core/src/professyans_core/paths.py`.
+  - `.cursor/rules/20-data-contract.mdc` — два вхождения `core/methods/formula7.py` исправлены на полный путь.
+  - `docs/00_INDEX.md`, `docs/03_CONVENTIONS.md`, `docs/04_CURSOR_PLAYBOOK.md` — приведены к полным репо-относительным путям.
+- `.cursorignore` — явно добавлены `.env.local` и `.env.*.local`.
+- `.cursorindexingignore` — добавлены кеши менеджеров пакетов (`.npm/`, `.yarn/`, `.pnpm-store/`, `.eslintcache`), uv-артефакты (`.uv/`, `uv.lock`), Python-артефакты (`.eggs/`, `wheels/`, `.python-version`), VCS-мусор (`*.orig`, `*.rej`).
+
 ### Open questions
 - **Нейминг продукта.** Рабочее имя «Профессьянс» сохраняется до релиза полного функционала. Подробности и направления поиска — в `docs/00_INDEX.md` §«Открытые вопросы». Технически переименование дешёвое: find/replace через Cursor после определения финального имени.
 
