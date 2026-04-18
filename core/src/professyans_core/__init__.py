@@ -25,6 +25,7 @@ from professyans_core.models import (
     Track,
     TraceEvent,
 )
+from professyans_core.methods.formula5 import F5
 from professyans_core.methods.formula7 import (
     F7,
     FormulaValidation,
@@ -51,7 +52,8 @@ __all__ = [
     "Session",
     "Track",
     "TraceEvent",
-    # Formula-7
+    # Formula-7 / Formula-5
+    "F5",
     "F7",
     "FormulaValidation",
     "MatchedHint",
