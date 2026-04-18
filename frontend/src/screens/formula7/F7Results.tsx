@@ -3,9 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shell } from '../../components/layout/Shell';
 import { Button } from '../../components/ui/Button';
+import { CardsBadgeList } from '@/components/results/CardsBadgeList';
+import { HintsList } from '@/components/results/HintsList';
+import { InsightBlock } from '@/components/results/InsightBlock';
+import { MoleculeMap } from '@/components/results/MoleculeMap';
 import { useSession } from '../../store/sessionStore';
 import { F7_CARDS_BY_CODE } from '../../data/formula7/cards';
 import { matchHints, detectSchzhConflicts } from '../../lib/f7/hints';
+import { buildOpenQuestions } from '@/lib/common/openQuestions';
 import { computeInsights } from '../../lib/tracker';
 import type { CardState } from '../../types/card';
 
@@ -43,16 +48,18 @@ export function F7Results() {
   }, [cardStates]);
 
   const flippedCards = useMemo(
-    () => Object.entries(cardStates)
-      .filter(([, st]) => (st as CardState) === 'flipped')
-      .map(([c]) => c),
+    () =>
+      Object.entries(cardStates)
+        .filter(([, st]) => (st as CardState) === 'flipped')
+        .map(([c]) => c),
     [cardStates]
   );
 
   const rejectedCards = useMemo(
-    () => Object.entries(cardStates)
-      .filter(([, st]) => (st as CardState) === 'reject')
-      .map(([c]) => c),
+    () =>
+      Object.entries(cardStates)
+        .filter(([, st]) => (st as CardState) === 'reject')
+        .map(([c]) => c),
     [cardStates]
   );
 
@@ -66,13 +73,10 @@ export function F7Results() {
 
   if (!session) return null;
 
-  const moleculeByCluster: Record<number, string[]> = { 0: [], 1: [], 2: [] };
-  for (const code of formula) {
-    const idx = clusters[code];
-    if (typeof idx === 'number') moleculeByCluster[idx].push(code);
-  }
-
-  const openQuestions = buildOpenQuestions(session, conflicts.length, flippedCards.length);
+  const openQuestions = buildOpenQuestions({
+    conflictCount: conflicts.length,
+    flippedCount: flippedCards.length,
+  });
 
   return (
     <Shell maxWidth="wide">
@@ -95,47 +99,7 @@ export function F7Results() {
         </p>
       </motion.section>
 
-      {/* Molecule — the central artefact, shown as a map */}
-      <section className="mb-20">
-        <div className="flex items-baseline justify-between mb-8">
-          <h2 className="font-display">Твоя формула</h2>
-          <span className="meta-label">{formula.length} карточек, {Object.values(moleculeByCluster).filter(a => a.length > 0).length} ядра</span>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[0, 1, 2].map((idx) => {
-            const codes = moleculeByCluster[idx];
-            if (codes.length === 0) return null;
-            return (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + idx * 0.1 }}
-                className="paper-card paper-card-raised p-6 md:p-7 bg-paper-50"
-              >
-                <div className="font-display text-2xl text-sage-600 mb-4">
-                  Ядро {idx + 1}
-                </div>
-                <div className="space-y-3">
-                  {codes.map((code) => {
-                    const c = F7_CARDS_BY_CODE[code];
-                    if (!c) return null;
-                    return (
-                      <div key={code} className="pb-3 border-b border-paper-300 last:border-0 last:pb-0">
-                        <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="meta-label">{c.code}</span>
-                        </div>
-                        <div className="font-display text-[1.05rem] leading-snug">{c.title}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </section>
+      <MoleculeMap formula={formula} clusters={clusters} cardsByCode={F7_CARDS_BY_CODE} />
 
       {/* Activating track: show process history */}
       {track === 'activating' && insights && (
@@ -151,21 +115,25 @@ export function F7Results() {
               label="Колебались"
               cards={insights.mostChangedCards}
               explainer="Эти карточки ты менял несколько раз. Значит, за ними — внутренний спор, который стоит услышать."
+              cardsByCode={F7_CARDS_BY_CODE}
             />
             <InsightBlock
               label="Возвращались из отверженных"
               cards={insights.returnedFromReject}
               explainer="Сначала отверг, потом всё-таки вернулся. Первый импульс оказался не окончательным."
+              cardsByCode={F7_CARDS_BY_CODE}
             />
             <InsightBlock
               label="Быстрые решения"
               cards={insights.quickDecisionCards.slice(0, 8)}
               explainer="Меньше двух секунд на решение — обычно это уже готовые, давно прожитые ответы."
+              cardsByCode={F7_CARDS_BY_CODE}
             />
             <InsightBlock
               label="Долгие раздумья"
               cards={insights.longDecisionCards.slice(0, 8)}
               explainer="Больше пятнадцати секунд — значит, карточка попала в зону настоящего размышления."
+              cardsByCode={F7_CARDS_BY_CODE}
             />
           </div>
 
@@ -176,59 +144,31 @@ export function F7Results() {
         </section>
       )}
 
-      {/* Flipped as growth zones */}
-      {flippedCards.length > 0 && (
-        <section className="mb-16">
-          <h2 className="font-display mb-4">Зоны роста</h2>
-          <p className="text-ink-700 mb-6 max-w-3xl leading-relaxed text-pretty">
+      <CardsBadgeList
+        variant="growth"
+        title="Зоны роста"
+        description={
+          <>
             Эти карточки ты пометил как «хочу, но сейчас недоступно».
             Стоит спросить себя: <em>что именно мешает — и что нужно, чтобы это изменить?</em>
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {flippedCards.map((code) => {
-              const c = F7_CARDS_BY_CODE[code];
-              if (!c) return null;
-              return (
-                <span
-                  key={code}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
-                             bg-paper-200 text-ink-700 border border-paper-300 text-sm"
-                >
-                  <span className="font-mono text-xs opacity-60">{c.code}</span>
-                  <span className="italic">{c.title}</span>
-                </span>
-              );
-            })}
-          </div>
-        </section>
-      )}
+          </>
+        }
+        cards={flippedCards}
+        cardsByCode={F7_CARDS_BY_CODE}
+      />
 
-      {/* Rejected as stop signals */}
-      {rejectedCards.length > 0 && (
-        <section className="mb-16">
-          <h2 className="font-display mb-4">Стоп-сигналы</h2>
-          <p className="text-ink-700 mb-6 max-w-3xl leading-relaxed text-pretty">
+      <CardsBadgeList
+        variant="stop"
+        title="Стоп-сигналы"
+        description={
+          <>
             Карточки, которые ты отверг. Не «плохое» — просто точно не твоё.
             Полезно просматривать этот список при любом предложении работы.
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {rejectedCards.map((code) => {
-              const c = F7_CARDS_BY_CODE[code];
-              if (!c) return null;
-              return (
-                <span
-                  key={code}
-                  className="inline-flex items-center gap-2 px-2.5 py-1 text-sm
-                             line-through decoration-terra-500 text-ink-500"
-                >
-                  <span className="font-mono text-[11px] opacity-50">{c.code}</span>
-                  <span>{c.title}</span>
-                </span>
-              );
-            })}
-          </div>
-        </section>
-      )}
+          </>
+        }
+        cards={rejectedCards}
+        cardsByCode={F7_CARDS_BY_CODE}
+      />
 
       {/* Conflicts */}
       {conflicts.length > 0 && (
@@ -260,42 +200,7 @@ export function F7Results() {
         </section>
       )}
 
-      {/* Hints — only show if activating track user opts in, OR if closed track */}
-      {hints.length > 0 && (
-        <section className="mb-16">
-          <h2 className="font-display mb-3">Направления, которые напрашиваются</h2>
-          <p className="text-ink-700 mb-2 max-w-3xl leading-relaxed text-pretty">
-            Это <em>не список рекомендуемых профессий</em>. Это направления, в которых твоя формула
-            находит совпадения с типовыми профессиональными паттернами.
-          </p>
-          <p className="meta-label mb-6">о каждом стоит узнать больше — и проверить, подходит ли тебе</p>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            {hints.map((h) => (
-              <div key={h.hint.id} className="paper-card p-5">
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="font-display text-[1.1rem] leading-snug">
-                    {h.hint.label}
-                  </div>
-                  <div className="meta-label shrink-0">
-                    {h.score}/{h.hint.keys.length}
-                  </div>
-                </div>
-                <div className="text-sm text-ink-600 italic leading-relaxed text-pretty">
-                  например: {h.hint.examples.join(', ')}
-                </div>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {h.matchedKeys.map((k) => (
-                    <span key={k} className="meta-label !normal-case bg-sage-100 px-2 py-0.5 rounded">
-                      {k}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      <HintsList hints={hints} />
 
       {/* Open questions — THE most important block per spec §4.5 */}
       <section className="mb-16 paper-card p-8 md:p-10 bg-sage-100/50 border-sage-300">
@@ -325,81 +230,8 @@ export function F7Results() {
             <Button variant="ghost">Мои прошлые работы</Button>
           </Link>
         </div>
-        <div className="mt-10 meta-label">
-          данные сохранены локально на твоём устройстве
-        </div>
+        <div className="mt-10 meta-label">данные сохранены локально на твоём устройстве</div>
       </section>
     </Shell>
   );
-}
-
-function InsightBlock({
-  label,
-  cards,
-  explainer,
-}: {
-  label: string;
-  cards: string[];
-  explainer: string;
-}) {
-  if (cards.length === 0) {
-    return (
-      <div className="paper-card p-5 opacity-60">
-        <div className="meta-label mb-2">{label}</div>
-        <div className="text-sm text-ink-600 italic">таких карточек не было</div>
-      </div>
-    );
-  }
-  return (
-    <div className="paper-card p-5">
-      <div className="meta-label mb-3">{label}</div>
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {cards.map((code) => {
-          const c = F7_CARDS_BY_CODE[code];
-          if (!c) return null;
-          return (
-            <span key={code}
-              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded
-                         bg-paper-200 text-xs text-ink-700">
-              <span className="font-mono opacity-60">{c.code}</span>
-              <span>{c.title}</span>
-            </span>
-          );
-        })}
-      </div>
-      <div className="text-sm text-ink-600 italic leading-relaxed text-pretty">
-        {explainer}
-      </div>
-    </div>
-  );
-}
-
-/**
- * Build personalized open questions based on the session state.
- * Per spec §4.5, these are conversation openers, not conclusions.
- */
-function buildOpenQuestions(
-  session: ReturnType<typeof useSession.getState>['session'],
-  conflictCount: number,
-  flippedCount: number
-): string[] {
-  void session; // reserved for future personalization
-  const base = [
-    'Что бы ты сказал себе через три года, если бы сегодняшние выборы оказались точными?',
-    'Какие из этих карточек ты бы показал родителям? Каких точно не показал бы? Почему?',
-  ];
-  if (flippedCount > 0) {
-    base.push(
-      'Есть ли профессия, где твои «зоны роста» (перевёрнутые карточки) — не слабость, а обязательное требование?'
-    );
-  }
-  if (conflictCount > 0) {
-    base.push(
-      'Напряжения, которые ты видишь — это то, с чем придётся жить, или то, что можно разрешить одним решением?'
-    );
-  }
-  base.push(
-    'Если бы кто-то описал «идеальную работу» этими же карточками — где ты не согласен с ним? Это важно: именно там твоя индивидуальность.'
-  );
-  return base;
 }
