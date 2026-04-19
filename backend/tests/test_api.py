@@ -32,6 +32,26 @@ def client() -> Iterator[TestClient]:
         pass
 
 
+def _make_f5_session_payload(session_id: str = "test-f5-session-1") -> dict:
+    """Minimal valid F-5 session: 8 liked cards across five groups, h1 keys included."""
+    now = int(time.time() * 1000)
+    formula = ["Ц-1", "П-1", "С-1", "У-1", "О-1", "Ц-6", "П-2", "С-4"]
+    card_states = {code: "like" for code in formula}
+    return {
+        "id": session_id,
+        "method": "F5",
+        "track": "activating",
+        "startedAt": now,
+        "updatedAt": now,
+        "currentStage": "f5.results",
+        "cardStates": card_states,
+        "formula": formula,
+        "clusters": {code: i % 3 for i, code in enumerate(formula)},
+        "trace": {"events": [], "cardFirstShown": {}, "cardChangeCount": {}},
+        "notes": [],
+    }
+
+
 def _make_session_payload(session_id: str = "test-session-1") -> dict:
     now = int(time.time() * 1000)
     return {
@@ -123,6 +143,22 @@ def test_get_result_computes_hints_and_conflicts(client: TestClient) -> None:
     # Ц-6 + П-2 + С-4 → IT hint (h4)
     hint_ids = [h["hintId"] for h in body["hints"]]
     assert "h4" in hint_ids
+
+
+def test_get_result_f5_no_conflicts_and_h1_hint(client: TestClient) -> None:
+    """F-5 result uses core derive_result — hints without tension/conflicts block."""
+    payload = _make_f5_session_payload("s-result-f5-1")
+    client.post("/api/v1/sessions", json=payload)
+
+    r = client.get("/api/v1/sessions/s-result-f5-1/result")
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["sessionId"] == "s-result-f5-1"
+    assert body["formula"] == payload["formula"]
+    assert body["validation"]["ok"] is True
+    assert "conflicts" not in body
+    hint_ids = [h["hintId"] for h in body["hints"]]
+    assert "h1" in hint_ids
 
 
 def test_get_methods_cards(client: TestClient) -> None:

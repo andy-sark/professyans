@@ -149,7 +149,7 @@ function computeDecisionTimes(trace: ProcessTrace): Record<string, number> {
   const out: Record<string, number> = {};
   for (const [code, lastTs] of Object.entries(lastChange)) {
     const firstShown = trace.cardFirstShown[code];
-    if (firstShown) out[code] = lastTs - firstShown;
+    if (firstShown != null) out[code] = lastTs - firstShown;
   }
   return out;
 }
