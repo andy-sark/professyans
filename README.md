@@ -107,7 +107,33 @@ cd backend && pytest
 # Frontend: статическая проверка типов
 cd frontend && npm run typecheck
 ```
+---
 
+### Запуск тестов
+
+Для core достаточно pytest в чистом venv:
+
+```bash
+cd core && pytest
+```
+
+Для backend-тестов нужно сначала установить оба пакета в editable-режиме — иначе `pytest` упадёт на `ModuleNotFoundError: fastapi` при сборе тестов:
+
+```bash
+pip install -e core/
+pip install -e 'backend/[dev]'
+cd backend && pytest
+```
+
+Для frontend:
+
+```bash
+cd frontend
+npm install
+npm test          # unit-тесты через vitest
+npm run typecheck # TypeScript strict
+npm run build     # prod-сборка
+```
 ---
 
 ## Принципы разработки

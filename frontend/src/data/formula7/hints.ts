@@ -5,13 +5,7 @@
  */
 
 import hintsJson from '@shared-data/formula7/hints.json';
-
-export interface HintSignature {
-  id: string;
-  keys: string[];
-  label: string;
-  examples: string[];
-}
+import type { HintSignature } from '../../lib/common/hints';
 
 export interface SchzhConflict {
   cards: string[];
@@ -25,3 +19,5 @@ const data = hintsJson as {
 
 export const F7_HINTS: HintSignature[] = data.hints;
 export const F7_SCHZH_CONFLICTS: SchzhConflict[] = data.schzh_conflicts;
+
+export type { HintSignature };

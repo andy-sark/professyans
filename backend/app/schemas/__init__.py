@@ -22,6 +22,7 @@ __all__ = [
     "SessionListItem",
     "SessionListResponse",
     "F7ResultResponse",
+    "F5ResultResponse",
     "MatchedHintSchema",
     "SchzhConflictSchema",
     "FormulaValidationSchema",
@@ -85,6 +86,18 @@ class F7ResultResponse(CamelModel):
     validation: FormulaValidationSchema
     hints: list[MatchedHintSchema]
     conflicts: list[SchzhConflictSchema]
+    insights: ProcessInsightsSchema
+    flipped_cards: list[str]
+    rejected_cards: list[str]
+
+
+class F5ResultResponse(CamelModel):
+    """Formula-5 result — same wire shape as F7 except no tension/conflicts list."""
+
+    session_id: str
+    formula: list[str]
+    validation: FormulaValidationSchema
+    hints: list[MatchedHintSchema]
     insights: ProcessInsightsSchema
     flipped_cards: list[str]
     rejected_cards: list[str]

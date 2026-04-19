@@ -35,10 +35,10 @@ const METHODS: MethodDef[] = [
     subtitle: 'Упрощённая версия, для более молодого возраста',
     cards: '45 карточек',
     duration: '≈ 30–40 мин',
-    available: false,
+    available: true,
     path: '/f5/intro',
     description:
-      'Классический вариант Пряжникова 2005 года. Пять групп вместо семи — быстрее, но без блока коммуникаций и без привязки к вузу. Будет добавлено в следующей итерации.',
+      'Классический вариант Пряжникова 2005 года. Пять групп вместо семи — быстрее, но без блока коммуникаций и без привязки к вузу.',
   },
   {
     id: 'KCHG',
@@ -94,6 +94,8 @@ export function HomeScreen() {
       // Route to the current stage
       if (s.currentStage.startsWith('f7.')) {
         navigate('/f7/' + s.currentStage.replace('f7.', '').split(':')[0]);
+      } else if (s.currentStage.startsWith('f5.')) {
+        navigate('/f5/' + s.currentStage.replace('f5.', '').split(':')[0]);
       } else {
         navigate('/');
       }
