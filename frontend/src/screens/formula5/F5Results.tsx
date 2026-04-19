@@ -8,24 +8,19 @@ import { HintsList } from '@/components/results/HintsList';
 import { InsightBlock } from '@/components/results/InsightBlock';
 import { MoleculeMap } from '@/components/results/MoleculeMap';
 import { useSession } from '../../store/sessionStore';
-import { F7_CARDS_BY_CODE } from '../../data/formula7/cards';
-import { matchHints, detectSchzhConflicts } from '../../lib/f7/hints';
+import { F5_CARDS_BY_CODE } from '../../data/formula5/cards';
+import { matchHints } from '../../lib/f5/hints';
 import { buildOpenQuestions } from '@/lib/common/openQuestions';
 import { computeInsights } from '../../lib/tracker';
 import type { CardState } from '../../types/card';
 
 /**
- * Results screen — phase 5 per spec §4.3.
+ * Results screen — phase 5 (Formula-5).
  *
- * CRITICAL UX requirements from the spec:
- *   - Thank the user for the work of reflection (§4.3).
- *   - Show the molecule as a MAP, not a list (§13.3).
- *   - Show process history — waverings, returns, quick/long decisions (§9.4).
- *   - End with OPEN QUESTIONS, not with conclusions (§4.5 "Незавершённое действие").
- *   - NEVER use "your personality type", "recommended professions:", etc.
- *   - Hints are conversation starters, not autodiagnosis (§10.3).
+ * Same UX contract as Formula-7 results: molecule map, optional process history,
+ * growth zones, stop signals, hints, open questions — without tension/conflict block.
  */
-export function F7Results() {
+export function F5Results() {
   const navigate = useNavigate();
   const session = useSession((s) => s.session);
 
@@ -38,7 +33,6 @@ export function F7Results() {
   const cardStates = session?.cardStates ?? {};
   const track = session?.track ?? 'activating';
 
-  // Derived data
   const likedSet = useMemo(() => {
     const s = new Set<string>();
     for (const [code, state] of Object.entries(cardStates)) {
@@ -64,7 +58,6 @@ export function F7Results() {
   );
 
   const hints = useMemo(() => matchHints(likedSet), [likedSet]);
-  const conflicts = useMemo(() => detectSchzhConflicts(likedSet), [likedSet]);
 
   const insights = useMemo(() => {
     if (!session) return null;
@@ -74,13 +67,12 @@ export function F7Results() {
   if (!session) return null;
 
   const openQuestions = buildOpenQuestions({
-    conflictCount: conflicts.length,
+    conflictCount: 0,
     flippedCount: flippedCards.length,
   });
 
   return (
     <Shell maxWidth="wide">
-      {/* Phase 5 opener — warm gratitude, not triumphalism */}
       <motion.section
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -99,9 +91,8 @@ export function F7Results() {
         </p>
       </motion.section>
 
-      <MoleculeMap formula={formula} clusters={clusters} cardsByCode={F7_CARDS_BY_CODE} />
+      <MoleculeMap formula={formula} clusters={clusters} cardsByCode={F5_CARDS_BY_CODE} />
 
-      {/* Activating track: show process history */}
       {track === 'activating' && insights && (
         <section className="mb-20">
           <h2 className="font-display mb-6">История твоего процесса</h2>
@@ -115,25 +106,25 @@ export function F7Results() {
               label="Колебались"
               cards={insights.mostChangedCards}
               explainer="Эти карточки ты менял несколько раз. Значит, за ними — внутренний спор, который стоит услышать."
-              cardsByCode={F7_CARDS_BY_CODE}
+              cardsByCode={F5_CARDS_BY_CODE}
             />
             <InsightBlock
               label="Возвращались из отверженных"
               cards={insights.returnedFromReject}
               explainer="Сначала отверг, потом всё-таки вернулся. Первый импульс оказался не окончательным."
-              cardsByCode={F7_CARDS_BY_CODE}
+              cardsByCode={F5_CARDS_BY_CODE}
             />
             <InsightBlock
               label="Быстрые решения"
               cards={insights.quickDecisionCards.slice(0, 8)}
               explainer="Меньше двух секунд на решение — обычно это уже готовые, давно прожитые ответы."
-              cardsByCode={F7_CARDS_BY_CODE}
+              cardsByCode={F5_CARDS_BY_CODE}
             />
             <InsightBlock
               label="Долгие раздумья"
               cards={insights.longDecisionCards.slice(0, 8)}
               explainer="Больше пятнадцати секунд — значит, карточка попала в зону настоящего размышления."
-              cardsByCode={F7_CARDS_BY_CODE}
+              cardsByCode={F5_CARDS_BY_CODE}
             />
           </div>
 
@@ -154,7 +145,7 @@ export function F7Results() {
           </>
         }
         cards={flippedCards}
-        cardsByCode={F7_CARDS_BY_CODE}
+        cardsByCode={F5_CARDS_BY_CODE}
       />
 
       <CardsBadgeList
@@ -167,42 +158,11 @@ export function F7Results() {
           </>
         }
         cards={rejectedCards}
-        cardsByCode={F7_CARDS_BY_CODE}
+        cardsByCode={F5_CARDS_BY_CODE}
       />
-
-      {/* Conflicts */}
-      {conflicts.length > 0 && (
-        <section className="mb-16">
-          <h2 className="font-display mb-4">Напряжения</h2>
-          <p className="text-ink-700 mb-6 max-w-3xl leading-relaxed">
-            Это не ошибки. Это места, где твои выборы сталкиваются — и где жизнь задаёт
-            задачу: как их совместить? <em>Программа не исправляет их за тебя.</em>
-          </p>
-          <div className="space-y-3">
-            {conflicts.map((c, i) => (
-              <div key={i} className="paper-card p-5 border-terra-300 bg-paper-50">
-                <div className="flex items-start gap-3">
-                  <span className="text-terra-500 text-xl leading-none">⚡</span>
-                  <div>
-                    <div className="text-ink-900 mb-2">{c.conflict.description}</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {c.matchedCards.map((code) => (
-                        <span key={code} className="meta-label !normal-case bg-paper-200 px-2 py-0.5 rounded">
-                          {code} {F7_CARDS_BY_CODE[code]?.title}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       <HintsList hints={hints} />
 
-      {/* Open questions — THE most important block per spec §4.5 */}
       <section className="mb-16 paper-card p-8 md:p-10 bg-sage-100/50 border-sage-300">
         <h2 className="font-display mb-6">О чём стоит подумать</h2>
         <ol className="space-y-5 list-none">
@@ -217,7 +177,6 @@ export function F7Results() {
         </ol>
       </section>
 
-      {/* Closing — spec §4.5 "Незавершённое действие": hand the baton back to life */}
       <section className="text-center py-10 border-t border-paper-300">
         <p className="font-display italic text-xl text-ink-700 mb-8 max-w-2xl mx-auto text-pretty">
           Это не вывод — это пауза в середине пути. Дальше — уже твоя живая жизнь.

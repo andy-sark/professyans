@@ -74,3 +74,6 @@ dist-desktop/
 
 # Storybook / other (задел на будущее)
 storybook-static/
+
+.t/
+.venv/

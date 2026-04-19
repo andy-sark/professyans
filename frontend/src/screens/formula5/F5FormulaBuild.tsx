@@ -5,25 +5,22 @@ import { Shell } from '../../components/layout/Shell';
 import { Button } from '../../components/ui/Button';
 import { useSession } from '../../store/sessionStore';
 import {
-  F7_CARDS_BY_CODE,
-  F7_MAIN_GROUPS,
-  F7_FORMULA_SIZE,
+  F5_BONUS_SIZE,
+  F5_CARDS_BY_CODE,
+  F5_FORMULA_SIZE,
+  F5_MAIN_GROUPS,
   cardsOfGroup,
-} from '../../data/formula7/cards';
-import { validateFormula, candidateCards } from '../../lib/f7/validation';
+} from '../../data/formula5/cards';
+import { validateFormula, candidateCards } from '../../lib/f5/validation';
+
+const MAX_FORMULA = F5_FORMULA_SIZE + F5_BONUS_SIZE;
 
 /**
- * Formula-building screen.
+ * Formula-building screen (Formula-5).
  *
- * User picks exactly 7 cards from the "like" pool in the 6 main groups,
- * with ≥1 per group (spec §5.3 phase 2). We:
- *   - show candidates grouped by group,
- *   - highlight groups that still need a pick,
- *   - allow add/remove freely,
- *   - only enable "дальше" when validation passes,
- *   - show issues inline (not as an error modal — this is normal work).
+ * Pick 8–10 cards from the "like" pool across five main groups (≥1 per group).
  */
-export function F7FormulaBuild() {
+export function F5FormulaBuild() {
   const navigate = useNavigate();
   const session = useSession((s) => s.session);
   const addToFormula = useSession((s) => s.addToFormula);
@@ -47,10 +44,9 @@ export function F7FormulaBuild() {
     [formula, session?.cardStates]
   );
 
-  // Group candidates by group for display
   const candidatesByGroup = useMemo(() => {
     const out: Record<string, typeof candidates> = {};
-    for (const g of F7_MAIN_GROUPS) out[g] = [];
+    for (const g of F5_MAIN_GROUPS) out[g] = [];
     for (const c of candidates) {
       if (out[c.group]) out[c.group].push(c);
     }
@@ -61,15 +57,17 @@ export function F7FormulaBuild() {
     if (formulaSet.has(code)) {
       removeFromFormula(code);
     } else {
-      if (formula.length >= F7_FORMULA_SIZE) return; // soft cap
+      if (formula.length >= MAX_FORMULA) return;
       addToFormula(code);
     }
   };
 
   const goNext = () => {
-    setStage('f7.molecule');
-    navigate('/f7/molecule');
+    setStage('f5.molecule');
+    navigate('/f5/molecule');
   };
+
+  const lastRankingGroup = F5_MAIN_GROUPS[F5_MAIN_GROUPS.length - 1] ?? 'О';
 
   if (!session) return null;
 
@@ -78,32 +76,28 @@ export function F7FormulaBuild() {
       <div className="mb-10">
         <div className="meta-label mb-4">Формула · сборка</div>
         <h1 className="mb-4 text-balance">
-          Выбери семь главных —{' '}
-          <span className="display-italic text-sage-600">свою формулу</span>.
+          Выбери восемь главных — <span className="display-italic text-sage-600">свою формулу</span>.
         </h1>
         <p className="text-ink-700 text-lg leading-relaxed max-w-3xl text-pretty">
-          Из карточек, помеченных как «нравится», собери ровно семь. Правило автора:
-          из каждой из шести основных групп должна быть хотя бы одна. Это правило —
-          способ не стянуть формулу в один угол.
+          Из карточек, помеченных как «нравится», собери от 8 до 10. Правило автора: из каждой из пяти основных групп
+          должна быть хотя бы одна. Это правило — способ не стянуть формулу в один угол.
         </p>
       </div>
 
       <FormulaTray
         formula={formula}
-        cardsByCode={F7_CARDS_BY_CODE}
+        cardsByCode={F5_CARDS_BY_CODE}
         validation={validation}
-        formulaSize={F7_FORMULA_SIZE}
+        formulaSize={F5_FORMULA_SIZE}
+        bonusSize={F5_BONUS_SIZE}
         onRemove={toggle}
       />
 
-      {/* Candidates by group */}
       <div className="space-y-10">
-        {F7_MAIN_GROUPS.map((g) => {
+        {F5_MAIN_GROUPS.map((g) => {
           const cs = candidatesByGroup[g] ?? [];
           const allInGroup = cardsOfGroup(g);
-          const groupHasInFormula = [...formulaSet].some(
-            (c) => F7_CARDS_BY_CODE[c]?.group === g
-          );
+          const groupHasInFormula = [...formulaSet].some((c) => F5_CARDS_BY_CODE[c]?.group === g);
           return (
             <section key={g}>
               <div className="flex items-baseline gap-3 mb-4">
@@ -118,13 +112,13 @@ export function F7FormulaBuild() {
 
               {cs.length === 0 ? (
                 <div className="paper-card p-5 text-ink-600 text-sm italic">
-                  В этой группе нет карточек с пометкой «нравится». Можешь вернуться
-                  к ранжированию и посмотреть её ещё раз —{' '}
+                  В этой группе нет карточек с пометкой «нравится». Можешь вернуться к ранжированию и посмотреть её
+                  ещё раз —{' '}
                   <button
                     className="underline hover:text-ink-900"
                     onClick={() => {
-                      setStage(`f7.ranking:${g}`);
-                      navigate('/f7/ranking');
+                      setStage(`f5.ranking:${g}`);
+                      navigate('/f5/ranking');
                     }}
                   >
                     перейти к группе {g}
@@ -135,7 +129,7 @@ export function F7FormulaBuild() {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {cs.map((c) => {
                     const picked = formulaSet.has(c.code);
-                    const atCap = formula.length >= F7_FORMULA_SIZE && !picked;
+                    const atCap = formula.length >= MAX_FORMULA && !picked;
                     return (
                       <button
                         key={c.code}
@@ -148,17 +142,11 @@ export function F7FormulaBuild() {
                       >
                         <div className="flex justify-between items-start gap-2 mb-1">
                           <span className="meta-label">{c.code}</span>
-                          {picked && (
-                            <span className="meta-label !text-sage-700">✓ в формуле</span>
-                          )}
+                          {picked && <span className="meta-label !text-sage-700">✓ в формуле</span>}
                         </div>
-                        <div className="font-display text-[1.02rem] leading-snug mb-1">
-                          {c.title}
-                        </div>
+                        <div className="font-display text-[1.02rem] leading-snug mb-1">{c.title}</div>
                         {c.description && (
-                          <div className="text-xs text-ink-600 leading-relaxed text-pretty">
-                            {c.description}
-                          </div>
+                          <div className="text-xs text-ink-600 leading-relaxed text-pretty">{c.description}</div>
                         )}
                       </button>
                     );
@@ -170,18 +158,19 @@ export function F7FormulaBuild() {
         })}
       </div>
 
-      {/* Nav */}
       <div className="mt-16 pt-8 border-t border-paper-300 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-        <Button variant="ghost" onClick={() => { setStage('f7.ranking:К'); navigate('/f7/ranking'); }}>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setStage(`f5.ranking:${lastRankingGroup}`);
+            navigate('/f5/ranking');
+          }}
+        >
           ← вернуться к ранжированию
         </Button>
 
         <div className="flex items-center gap-4">
-          {!validation.ok && (
-            <div className="text-sm text-ink-600">
-              пока нельзя дальше — см. список наверху
-            </div>
-          )}
+          {!validation.ok && <div className="text-sm text-ink-600">пока нельзя дальше — см. список наверху</div>}
           <Button size="lg" disabled={!validation.ok} onClick={goNext}>
             собрать молекулу →
           </Button>

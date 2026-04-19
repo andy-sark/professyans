@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from typing import Union
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -11,12 +12,14 @@ from sqlalchemy.orm import Session as DbSession
 from app.db import get_db
 from app.db.models import SessionRecord
 from app.schemas import (
+    F5ResultResponse,
     F7ResultResponse,
     Session as SessionSchema,
     SessionListItem,
     SessionListResponse,
 )
-from professyans_core.methods.formula7 import derive_result
+from professyans_core.methods.formula5 import derive_result as derive_result_f5
+from professyans_core.methods.formula7 import derive_result as derive_result_f7
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -123,26 +126,41 @@ def list_sessions(
     return SessionListResponse(items=items, total=total)
 
 
-@router.get("/{session_id}/result", response_model=F7ResultResponse)
-def get_result(session_id: str, db: DbSession = Depends(get_db)) -> F7ResultResponse:
-    """Compute and return the F7 result for a session — server-side parity check."""
+@router.get("/{session_id}/result", response_model=Union[F7ResultResponse, F5ResultResponse])
+def get_result(
+    session_id: str, db: DbSession = Depends(get_db),
+) -> Union[F7ResultResponse, F5ResultResponse]:
+    """Compute and return the derived result for a session — server-side parity check."""
     rec = db.get(SessionRecord, session_id)
     if rec is None:
         raise HTTPException(status_code=404, detail="Session not found")
-    if rec.method != "F7":
-        raise HTTPException(
-            status_code=400,
-            detail=f"Result derivation for method '{rec.method}' not implemented yet",
-        )
     session = _record_to_session(rec)
-    result = derive_result(session)
-    return F7ResultResponse(
-        session_id=result.session_id,
-        formula=result.formula,
-        validation=asdict(result.validation),  # type: ignore[arg-type]
-        hints=[asdict(h) for h in result.hints],  # type: ignore[arg-type]
-        conflicts=[asdict(c) for c in result.conflicts],  # type: ignore[arg-type]
-        insights=result.insights.model_dump(),  # type: ignore[arg-type]
-        flipped_cards=result.flipped_cards,
-        rejected_cards=result.rejected_cards,
+
+    if rec.method == "F7":
+        result = derive_result_f7(session)
+        return F7ResultResponse(
+            session_id=result.session_id,
+            formula=result.formula,
+            validation=asdict(result.validation),  # type: ignore[arg-type]
+            hints=[asdict(h) for h in result.hints],  # type: ignore[arg-type]
+            conflicts=[asdict(c) for c in result.conflicts],  # type: ignore[arg-type]
+            insights=result.insights.model_dump(),  # type: ignore[arg-type]
+            flipped_cards=result.flipped_cards,
+            rejected_cards=result.rejected_cards,
+        )
+    if rec.method == "F5":
+        result = derive_result_f5(session)
+        return F5ResultResponse(
+            session_id=result.session_id,
+            formula=result.formula,
+            validation=asdict(result.validation),  # type: ignore[arg-type]
+            hints=[asdict(h) for h in result.hints],  # type: ignore[arg-type]
+            insights=result.insights.model_dump(),  # type: ignore[arg-type]
+            flipped_cards=result.flipped_cards,
+            rejected_cards=result.rejected_cards,
+        )
+
+    raise HTTPException(
+        status_code=400,
+        detail=f"Result derivation for method '{rec.method}' not implemented yet",
     )
