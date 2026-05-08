@@ -7,34 +7,84 @@
 ## [Unreleased]
 
 ### Added
-- Набор опорных документов `docs/00_INDEX.md` … `docs/07_GIT_WORKFLOW.md` для последующей работы в новых чатах и с Cursor.
-- `AGENTS.md` в корне — cross-tool инструкции для AI-агентов (Cursor, Codex, Copilot, Windsurf, Amp, Devin) по стандарту agents.md (Linux Foundation).
-- `.cursor/rules/*.mdc` — modern Cursor rules с YAML-frontmatter:
-  - `00-global.mdc` (alwaysApply) — красные линии, базовые правила.
-  - `10-architecture.mdc` (agent-requested) — рационал архитектурных решений.
-  - `20-data-contract.mdc` (auto-attached к `shared-data/**`, `**/data/**`) — схемы JSON.
-  - `30-parity.mdc` (auto-attached к логическим файлам) — правило TS↔Python parity.
-- `.cursorignore` — секреты, локальные БД не уходят в AI-контекст.
-- `.cursorindexingignore` — lockfiles, кеши, артефакты не засоряют семантический поиск.
-- `.gitignore` покрывает Node, Python, БД, секреты, Docker и будущие desktop-артефакты.
+- Documentation sweep итерации 4.6: синхронизация `README.md`, `docs/00_INDEX.md`, `docs/05_ROADMAP_TASKS.md`, `docs/06_SPEC_MAP.md` с фактическим состоянием после закрытия итерации 4 и в процессе 4.5.
+- Добавлен `.env.example` с шаблонами `VITE_API_URL`, `DATABASE_URL`, `CORS_ALLOW_ORIGINS`, `LOG_LEVEL`.
 
 ### Changed
-- **Миграция с legacy `.cursorrules` на новую структуру `.cursor/rules/*.mdc` + `AGENTS.md`.** Старый формат официально помечен как deprecated; новая схема даёт четыре режима активации (always / auto-attached по глобам / agent-requested / manual), cross-tool совместимость, лучшее управление контекстом.
-- Обновлены `docs/00_INDEX.md` и `docs/04_CURSOR_PLAYBOOK.md` под новую структуру.
+- Актуализирована roadmap-нумерация: итерация 4 закрыта, 4.5 в процессе, добавлена итерация 5 «Графическая молекула», остальные итерации сдвинуты на +1.
+- В `README.md` обновлены метрики тестов (50 core / 9 backend / 61 frontend), добавлен дисклеймер «Авторство методик», версия повышена до `0.5.0`.
 
 ### Fixed
-- **Consistency-audit через Cursor после initial git setup выявил рассинхрон путей:**
-  - `README.md` — дерево репо дополнено до полного: добавлены `docs/`, `.cursor/`, корневые спеки, `AGENTS.md`, `CHANGELOG.md`.
-  - `docs/06_SPEC_MAP.md` — все пути приведены к полной репо-относительной форме (было: `core/methods/formula7.py`, `HomeScreen.tsx` без каталога, `05_ROADMAP_TASKS.md` без `docs/`; ссылка `@/mnt/project/...` заменена на `@professyans_spec_v2.md` из корня репо).
-  - `AGENTS.md` и `.cursor/rules/10-architecture.mdc` — номер итерации desktop выровнен с `README.md` / `docs/05_ROADMAP_TASKS.md` (итерация **8**; было разночтение 7/8).
-  - `.cursor/rules/10-architecture.mdc` — `core/paths.py` исправлено на `core/src/professyans_core/paths.py`.
-  - `.cursor/rules/20-data-contract.mdc` — два вхождения `core/methods/formula7.py` исправлены на полный путь.
-  - `docs/00_INDEX.md`, `docs/03_CONVENTIONS.md`, `docs/04_CURSOR_PLAYBOOK.md` — приведены к полным репо-относительным путям.
-- `.cursorignore` — явно добавлены `.env.local` и `.env.*.local`.
-- `.cursorindexingignore` — добавлены кеши менеджеров пакетов (`.npm/`, `.yarn/`, `.pnpm-store/`, `.eslintcache`), uv-артефакты (`.uv/`, `uv.lock`), Python-артефакты (`.eggs/`, `wheels/`, `.python-version`), VCS-мусор (`*.orig`, `*.rej`).
+- Устранён рассинхрон «Формула-5 не реализована» в `docs/06_SPEC_MAP.md`: §6 теперь ссылается на реальные файлы F-5 и тесты.
 
 ### Open questions
 - **Нейминг продукта.** Рабочее имя «Профессьянс» сохраняется до релиза полного функционала. Подробности и направления поиска — в `docs/00_INDEX.md` §«Открытые вопросы». Технически переименование дешёвое: find/replace через Cursor после определения финального имени.
+
+## [0.5.0] — 2026-05 (в процессе, итерация 4.5)
+
+### Added
+- Закрыты технические долги TD-1, TD-2, TD-3, TD-10 (см. `docs/99_TECH_DEBT.md`).
+- Унификация `HintSignature` через `frontend/src/lib/common/hints.ts`.
+- Unit-тесты для `frontend/src/lib/tracker.ts` (16 тестов).
+- README-секция «Запуск тестов» с явным рецептом venv.
+- Parity-fix для `cardFirstShown === 0` в `frontend/src/lib/tracker.ts::computeDecisionTimes`.
+- UI-примитивы в `frontend/src/components/common/`:
+  - `TrackOption` (TD-8.1),
+  - `FormulaTray` + `LegendChip` (TD-8.2).
+
+### Changed
+- `frontend/src/lib/tracker.ts::computeDecisionTimes` — truthy-check заменён на nullish-check для parity с Python.
+
+## [0.4.0] — 2026-04-18 (итерация 4: Формула-5)
+
+### Added
+- **Формула-5** — полный vertical slice:
+  - 45 карточек в `shared-data/formula5/cards.json` (с `bonusSize: 2`).
+  - 5 draft-сигнатур в `shared-data/formula5/hints.json`.
+  - `core/src/professyans_core/methods/formula5.py` — полный API F-5, parity с F-7 после рефакторинга в `methods/common.py`.
+  - 26 pytest-тестов F-5 (контрольные отличия от F-7: Ц-2, О-3, О-8, У-7).
+  - `frontend/src/lib/f5/` (validation, hints) — тонкие обёртки над `frontend/src/lib/common/`.
+  - `frontend/src/data/formula5/` (cards, hints) — обёртки над JSON.
+  - 26 vitest-тестов F-5 в `frontend/src/lib/f5/__tests__/`.
+  - 5 экранов F-5 в `frontend/src/screens/formula5/`.
+  - F-5 endpoint в `backend/app/api/sessions.py::get_result`.
+  - `F5ResultResponse` schema в `backend/app/schemas/`.
+  - F-5 интеграционный тест в `backend/tests/test_api.py`.
+
+### Changed
+- `core/src/professyans_core/methods/common.py` — generic `validate_formula`, `match_hints`, `compute_insights`. F-7 теперь использует общий код.
+- `frontend/src/lib/common/` — TS-зеркало generic-логики.
+- `validate_formula` принимает `bonus_size` через kwarg (default 0; F-5 передаёт 2).
+- `frontend/src/components/results/` — общие result-блоки (`MoleculeMap`, `InsightBlock`, `CardsBadgeList`, `HintsList`). F-7 Results отрефакторен на их использование.
+- HomeScreen: F-5 → `available: true`. `frontend/src/App.tsx`: добавлены роуты `/f5/intro` … `/f5/results`. ResumeAndGo поддерживает F-5.
+- `shared-data/formula7/cards.json::meta` получил `bonusSize: 0` явно.
+
+## [0.3.0] — 2026-04-18 (итерация 3 docs + cursor rules)
+
+### Added
+- Набор опорных документов `docs/00_INDEX.md` … `docs/07_GIT_WORKFLOW.md` для последующей работы в новых чатах и с Cursor.
+- `AGENTS.md` в корне — cross-tool инструкции для AI-агентов.
+- `.cursor/rules/*.mdc` — modern Cursor rules с YAML-frontmatter (`00-global`, `10-architecture`, `20-data-contract`, `30-parity`).
+- `.cursorignore`, `.cursorindexingignore`, `.gitignore`.
+
+### Changed
+- **Миграция с legacy `.cursorrules` на новую структуру `.cursor/rules/*.mdc` + `AGENTS.md`.**
+
+### Fixed
+- Consistency-audit через Cursor: рассинхрон путей в README, `docs/06_SPEC_MAP.md`, `AGENTS.md`, cursor rules. Все пути приведены к полной репо-относительной форме.
+- Номера итераций desktop выровнены (везде 8, было разночтение 7/8).
+
+## [0.2.0] — 2026-04 (итерация 2: backend + sync)
+
+### Added
+- Python-ядро `core/` с Pydantic-моделями и portированной F-7 логикой (24 pytest, 0.4с).
+- FastAPI backend с REST API (sessions CRUD, methods/, /result).
+- SQLAlchemy 2.0 модели, JSON-blob storage, SQLite/Postgres support.
+- 8 integration-тестов через `fastapi.testclient.TestClient`.
+- Server-side parity тест `test_get_result_computes_hints_and_conflicts`.
+- Opt-in sync: frontend `frontend/src/lib/api.ts`, debounced upsert на каждое изменение сессии.
+- HomeScreen: тумблер «облачное резервирование».
+- Docker-compose: postgres + backend + frontend (nginx).
 
 ## [0.1.0] — 2026-04-18
 

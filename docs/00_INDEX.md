@@ -17,15 +17,16 @@
 | Компонент | Статус | Примечание |
 |---|---|---|
 | Формула-7 | ✅ полный флоу | frontend + backend + тесты |
-| Формула-5 | план | подмножество F7, отдельный JSON |
-| КЧГ | план | с матрицей связей К↔Ч↔Г |
-| Перекрёсток | план | опросник 222 вопроса, 4 подчасти |
-| Backend API | ✅ работает | FastAPI + PostgreSQL |
+| Формула-5 | ✅ полный флоу | 45 карт, 5 групп, hints draft-база |
+| Графическая молекула | план | итерация 5: drag-and-drop, эмерджентные ядра |
+| КЧГ | план | итерация 6, с матрицей связей К↔Ч↔Г |
+| Перекрёсток | план | итерация 7, опросник 222 вопроса, 4 подчасти |
+| Backend API | ✅ работает | FastAPI + PostgreSQL, F-5 endpoint в составе итерации 4 |
 | Docker-compose | ✅ готов | не тестировался под нагрузкой |
-| Desktop (dmg/exe) | план | PyWebView + PyInstaller |
-| Авторизация, консультант | план | |
-| Экспорт PDF | план | pdfmake на клиенте |
-| i18n | план | ru → uk, en |
+| Desktop (dmg/exe) | план | итерация 9, PyWebView + PyInstaller |
+| Авторизация, консультант | план | итерация 8 |
+| Экспорт PDF | план | итерация 10, pdfmake на клиенте |
+| i18n | план | итерация 10, ru → uk, en |
 
 Полная дорожная карта: `05_ROADMAP_TASKS.md`.
 
@@ -49,10 +50,24 @@ professyans/
 │   ├── src/
 │   │   ├── types/             TS-зеркало core/models.py
 │   │   ├── data/formula7/     тонкие обёртки над shared-data JSON
+│   │   ├── data/formula5/     то же для F-5
 │   │   ├── store/             Zustand session store (auto-persist)
-│   │   ├── lib/               storage, tracker, api, f7/{validation,hints}
-│   │   ├── components/        ui/, layout/, cards/
-│   │   └── screens/           HomeScreen, HistoryScreen, formula7/*
+│   │   ├── lib/
+│   │   │   ├── common/        generic validation, hints, openQuestions
+│   │   │   ├── f7/            тонкие обёртки над common
+│   │   │   ├── f5/            то же для F-5
+│   │   │   ├── tracker.ts     трекинг процесса (method-agnostic)
+│   │   │   └── api.ts         opt-in sync с backend
+│   │   ├── components/
+│   │   │   ├── ui/            Button, ProgressBar
+│   │   │   ├── layout/        Shell
+│   │   │   ├── cards/         RankCard
+│   │   │   ├── common/        TrackOption, LegendChip, FormulaTray, CandidateGrid
+│   │   │   └── results/       MoleculeMap, InsightBlock, CardsBadgeList, HintsList
+│   │   └── screens/
+│   │       ├── HomeScreen, HistoryScreen
+│   │       ├── formula7/      F7Intro → F7Ranking → … → F7Results
+│   │       └── formula5/      F5Intro → F5Ranking → … → F5Results
 │   └── Dockerfile, nginx.conf
 │
 ├── backend/                   FastAPI + SQLAlchemy 2.0
@@ -69,17 +84,20 @@ professyans/
 │   ├── src/professyans_core/
 │   │   ├── models.py          Pydantic с camelCase alias
 │   │   ├── paths.py           resolver для shared-data
-│   │   └── methods/formula7.py validate_formula, match_hints,
-│   │                           detect_schzh_conflicts, compute_insights,
-│   │                           derive_result (высокоуровневый)
-│   └── tests/                 24 теста
+│   │   └── methods/
+│   │       ├── common.py      generic validate_formula, match_hints, compute_insights
+│   │       ├── formula7.py    F-7 namespace + detect_schzh_conflicts
+│   │       └── formula5.py    F-5 namespace (без СЧЖ)
+│   └── tests/                 50 тестов
 │
 ├── shared-data/               CANONICAL JSON — единственный источник правды
-│   └── formula7/
-│       ├── cards.json         75 карточек + meta (groups, mainGroups,
-│       │                      rankingOrder, formulaSize)
-│       ├── provocations.json  ~30 провокаций с триггерами
-│       └── hints.json         18 сигнатур подсказок + 5 SCHZH-конфликтов
+│   ├── formula7/
+│   │   ├── cards.json         75 карточек + meta
+│   │   ├── provocations.json  ~30 провокаций с триггерами
+│   │   └── hints.json         18 сигнатур + 5 SCHZH-конфликтов
+│   └── formula5/
+│       ├── cards.json         45 карточек + meta (bonusSize: 2)
+│       └── hints.json         5 draft-сигнатур (TD-4)
 │
 ├── docs/                      ← ТЫ ЗДЕСЬ
 ├── docker-compose.yml         postgres + backend + frontend
@@ -134,8 +152,9 @@ professyans/
 
 ```bash
 # Тесты всех трёх пакетов
-cd core && pytest                      # 24 теста, ~0.4с
-cd backend && pytest                   # 8 тестов, ~3с
+cd core && pytest                      # 50 тестов, ~0.5с
+cd backend && pytest                   # 9 тестов, ~3с
+cd frontend && npm test                # 61 unit-тест (vitest)
 cd frontend && npm run typecheck       # TS strict
 
 # Билд и запуск

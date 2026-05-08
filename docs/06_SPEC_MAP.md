@@ -26,7 +26,7 @@
 
 | Раздел | Тема | Реализация |
 |---|---|---|
-| §3.1 | Функциональные модули MOD-1..8 | `frontend/src/screens/HomeScreen.tsx` (MOD-1), `frontend/src/lib/f7/` (MOD-2), `frontend/src/lib/tracker.ts` (MOD-5), `frontend/src/data/formula7/provocations.ts` (MOD-6), `frontend/src/screens/formula7/F7Results.tsx` (MOD-7) |
+| §3.1 | Функциональные модули MOD-1..8 | `frontend/src/screens/HomeScreen.tsx` (MOD-1), `frontend/src/lib/common/`, `frontend/src/lib/f7/`, `frontend/src/lib/f5/` (MOD-2), `frontend/src/lib/tracker.ts` (MOD-5), `frontend/src/data/formula7/provocations.ts` (MOD-6), `frontend/src/screens/formula7/F7Results.tsx` + `frontend/src/components/results/` (MOD-7) |
 | §3.2 | Требования к интерфейсу | `frontend/src/components/layout/Shell.tsx`, `frontend/tailwind.config.js`, `frontend/src/styles/index.css` |
 | §3.3 | Технологический стек | `frontend/package.json`, `backend/pyproject.toml`, `core/pyproject.toml` |
 | §3.4 | Нефункциональные требования | `frontend/src/lib/storage.ts` (прерывание/возврат, приватность) |
@@ -58,13 +58,17 @@
 
 | Раздел | Тема | Реализация |
 |---|---|---|
-| §6.x | Всё | НЕ РЕАЛИЗОВАНО. Задача — итерация 4 в `docs/05_ROADMAP_TASKS.md`. |
+| §6.1 | Концепция и аудитория (5–8 класс) | `frontend/src/screens/formula5/F5Intro.tsx` |
+| §6.2 | Отличия от F-7 (Ц-2, О-3, О-8, У-7) | Контрольные тесты в `core/tests/test_formula5.py`, `frontend/src/lib/f5/__tests__/validation.test.ts` |
+| §6.3 | Состав 45 карточек | `shared-data/formula5/cards.json` |
+| §6.4 | Процедура (бонусные карты) | `frontend/src/screens/formula5/F5FormulaBuild.tsx`, validation: `core/src/professyans_core/methods/formula5.py::validate_formula` (читает `bonus_size`) |
+| §6.5 | Подсказки (5 draft-сигнатур) | `shared-data/formula5/hints.json`, `frontend/src/lib/f5/hints.ts::matchHints` |
 
 ### §7 — КЧГ
 
 | Раздел | Тема | Реализация |
 |---|---|---|
-| §7.x | Всё | НЕ РЕАЛИЗОВАНО. Задача — итерация 5 в `docs/05_ROADMAP_TASKS.md`. |
+| §7.x | Всё | НЕ РЕАЛИЗОВАНО. Задача — итерация 6 в `docs/05_ROADMAP_TASKS.md`. |
 
 ### §8 — Перекрёсток (в общей спеке)
 
@@ -97,7 +101,7 @@
 | §13 | Активизирующий трек | Дефолтный тон всех экранов в `frontend/src/screens/formula7/` |
 | §13.3 | Экран завершения активизирующего трека | `frontend/src/screens/formula7/F7Results.tsx` (секции «Открытые вопросы», «История процесса») |
 | §14 | Закрытый трек | `frontend/src/screens/formula7/F7Intro.tsx::TrackOption` — выбор трека. Логика упрощённого флоу — УПРОЩЕНА, расширить в v2. |
-| §15 | Режим консультанта | НЕ РЕАЛИЗОВАНО. Итерация 7 в `docs/05_ROADMAP_TASKS.md`. |
+| §15 | Режим консультанта | НЕ РЕАЛИЗОВАНО. Итерация 8 в `docs/05_ROADMAP_TASKS.md`. |
 
 ### Часть V — Границы
 
@@ -113,7 +117,7 @@
 
 ## perekrestok_spec_v2.md (спека Перекрёстка)
 
-Все разделы — НЕ РЕАЛИЗОВАНЫ. Задача — итерация 6 в `docs/05_ROADMAP_TASKS.md`.
+Все разделы — НЕ РЕАЛИЗОВАНЫ. Задача — итерация 7 в `docs/05_ROADMAP_TASKS.md`.
 
 При реализации планируется следующая структура файлов (пути от корня репо):
 
